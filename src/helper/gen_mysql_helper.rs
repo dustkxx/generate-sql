@@ -34,7 +34,7 @@ use std::{
 
 pub fn gen_mysql_sql(
     base_info: &TableBaseInfo,
-    table_columns: Vec<&CreateTableColumns>,
+    table_columns: &Vec<CreateTableColumns>,
     output_path: &String,
 ) {
     let mut column_sql = String::new();
@@ -48,14 +48,14 @@ pub fn gen_mysql_sql(
         column_sql.push_str(&column_str);
     }
 
+    let tmp_path = std::env::current_dir().unwrap();
     let mysql_template =
-        read_to_string("data/sqltmp/mysqlTmp.sql").expect("获取 gentableddl.xlsx 文件失败");
+        read_to_string(tmp_path.join("data").join("sqltmp").join("mysqlTmp.sql")).expect("获取mysql模版文件失败");
     let mysql_sql = mysql_template
         .replace("@tableName@", base_info.table_name())
         .replace("@tableComment@", base_info.table_comment())
         .replace("@tableColumn@", &column_sql);
-    File::create(output_path).expect("创建文件失败");
-    let mut file = File::open(output_path).expect("打开文件失败");
+    let mut file = File::create(output_path).expect("创建文件失败");
     file.write_all(mysql_sql.as_bytes()).expect("写入文件失败");
 }
 
